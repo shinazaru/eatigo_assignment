@@ -1,0 +1,36 @@
+version: "3.5"
+
+services:
+  api:
+    image: shortly
+    container_name: shortly
+    depends_on:
+      - db
+    build:
+      context: ..
+      dockerfile: ./deployment/Dockerfile
+    restart: always
+    environment:
+      MONGO_URL: mongodb://eatigo:ogitae@db:27017
+      MONGO_DATABASE: eatigo
+      API_DOMAIN: http://localhost:3000/
+    ports:
+      - 3000:3000
+    networks:
+      - eatigo_assignment
+  
+  db:
+    image: mongo
+    container_name: shortly-db
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: eatigo
+      MONGO_INITDB_ROOT_PASSWORD: ogitae
+      MONGO_INITDB_DATABASE: eatigo
+    networks:
+      - eatigo_assignment
+
+networks:
+  eatigo_assignment:
