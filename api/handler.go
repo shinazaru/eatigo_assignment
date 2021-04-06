@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -9,6 +11,8 @@ import (
 	"github.com/renstrom/shortuuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func CreateShortlyHandler(c echo.Context) (err error) {
@@ -17,7 +21,16 @@ func CreateShortlyHandler(c echo.Context) (err error) {
 	if err = c.Bind(shortlyData); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-	collection, _, err := DatabaseConnection()
+	dbClient, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGO_URL")))
+	if err != nil {
+		log.Panicln(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err = dbClient.Connect(ctx); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	collection := dbClient.Database(os.Getenv("MONGO_DATABASE")).Collection("shortlyData")
 
 	shortlyData.ShortUUID = shortuuid.New()
 	shortlyData.ExpireAt = time.Now().Add(time.Duration(time.Hour * 24 * 30))
@@ -32,7 +45,16 @@ func CreateShortlyHandler(c echo.Context) (err error) {
 func RedirectShortlyHandler(c echo.Context) error {
 	shortUUID := c.Param("id")
 
-	collection, ctx, _ := DatabaseConnection()
+	dbClient, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGO_URL")))
+	if err != nil {
+		log.Panicln(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err = dbClient.Connect(ctx); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	collection := dbClient.Database(os.Getenv("MONGO_DATABASE")).Collection("shortlyData")
 	shortlyData, err := FindShortlyData(shortUUID, ctx, collection)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -46,7 +68,16 @@ func RedirectShortlyHandler(c echo.Context) error {
 
 func DeleteShortlyHandler(c echo.Context) error {
 	shortUUID := c.Param("id")
-	collection, ctx, err := DatabaseConnection()
+	dbClient, err := mongo.NewClient(options.Client().ApplyURI(os.Getenv("MONGO_URL")))
+	if err != nil {
+		log.Panicln(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err = dbClient.Connect(ctx); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	collection := dbClient.Database(os.Getenv("MONGO_DATABASE")).Collection("shortlyData")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}

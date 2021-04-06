@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -17,16 +18,12 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
-		// AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
+		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
 	}))
 
 	e.GET("/", func(c echo.Context) error {
 		return c.String(200, "OK")
 	})
-
-	// e.POST("/", func(c echo.Context) error {
-	// 	return c.String(200, "OK")
-	// })
 
 	e.POST("/", CreateShortlyHandler)
 	e.GET("/:id", RedirectShortlyHandler)

@@ -13,12 +13,12 @@ func InsertIntoDB(collection *mongo.Collection, shortlyData *ShortlyData) error 
 	return err
 }
 
-func FindShortlyData(shortUUID string, ctx context.Context, collection *mongo.Collection) (ShortlyData, error) {
+func FindShortlyData(shortUUID string, ctx context.Context, collection *mongo.Collection) (ShortlyMongoModel, error) {
 	filter := bson.M{
 		"shortUUID": shortUUID,
 	}
 	mongoData := collection.FindOne(ctx, filter)
-	var shortlyData ShortlyData
+	var shortlyData ShortlyMongoModel
 	if err := mongoData.Decode(&shortlyData); err != nil {
 		return shortlyData, err
 	}
@@ -30,7 +30,7 @@ func DeleteShortlyData(shortUUID string, ctx context.Context, collection *mongo.
 		"shortUUID": shortUUID,
 	}
 	mongoData := collection.FindOne(ctx, filter)
-	var shortlyData ShortlyData
+	var shortlyData ShortlyMongoModel
 	if err := mongoData.Decode(&shortlyData); err != nil {
 		return err
 	}
